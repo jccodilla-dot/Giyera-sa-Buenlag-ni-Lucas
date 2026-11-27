@@ -11,11 +11,28 @@
     if (handlers[ev]) handlers[ev](data);
   }
 
+  function getApiBase() {
+    if (window.Capacitor || location.protocol === 'capacitor:' || location.protocol === 'file:') {
+      return 'https://ais-pre-ixyvm4cv6zipshqzkviarp-1017503256644.europe-west2.run.app';
+    }
+    return '';
+  }
+
+  function getWsUrl() {
+    var custom = '';
+    try { custom = localStorage.getItem('lucas_ws_url') || ''; } catch (e) {}
+    if (custom) return custom;
+    if (window.Capacitor || location.protocol === 'capacitor:' || location.protocol === 'file:') {
+      return 'wss://ais-pre-ixyvm4cv6zipshqzkviarp-1017503256644.europe-west2.run.app/ws';
+    }
+    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return proto + '//' + location.host + '/ws';
+  }
+
   function connect() {
     if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
-    var proto = location.protocol === 'https:' ? 'wss:' : 'ws:';
     try {
-      ws = new WebSocket(proto + '//' + location.host + '/ws');
+      ws = new WebSocket(getWsUrl());
     } catch (e) {
       emit('status', 'Offline');
       return;
@@ -87,6 +104,7 @@
   window.GameNet = {
     on: function (ev, fn) { handlers[ev] = fn; },
     connect: connect,
+    getApiBase: getApiBase,
     isConnected: function () { return connected; },
     getClientId: function () { return clientId; },
     getRoom: function () { return room; },

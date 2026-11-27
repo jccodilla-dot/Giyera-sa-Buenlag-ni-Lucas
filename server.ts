@@ -1,4 +1,5 @@
 import express from 'express';
+import fs from 'node:fs/promises';
 import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -186,10 +187,64 @@ function checkSurvivorWinner(room: GameRoom) {
 
 async function startServer() {
   const app = express();
+  app.use(express.json({ limit: '64kb' }));
+  app.use((_req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (_req.method === 'OPTIONS') { res.sendStatus(204); return; }
+    next();
+  });
   const server = http.createServer(app);
 
   app.get('/api/health', (_req, res) => {
     res.json({ ok: true, rooms: rooms.size });
+  });
+
+  app.post('/api/suggestions', async (req, res) => {
+    const body = req.body || {};
+    const name = String(body.name || 'Player').trim().slice(0, 60);
+    const category = String(body.category || 'General').trim().slice(0, 60);
+    const message = String(body.message || '').trim().slice(0, 2000);
+    if (!message) {
+      res.status(400).json({ ok: false, error: 'Please enter a suggestion message.' });
+      return;
+    }
+
+    const entry = {
+      timestamp: new Date().toISOString(),
+      to: 'jccodilla@gmail.com',
+      name,
+      category,
+      message,
+    };
+
+    try {
+      await fs.appendFile(path.resolve(__dirname, 'suggestions.jsonl'), JSON.stringify(entry) + '\n', 'utf8');
+    } catch {}
+
+    let forwarded = false;
+    try {
+      const ac = new AbortController();
+      const timer = setTimeout(() => ac.abort(), 4500);
+      const emailRes = await fetch('https://formsubmit.co/ajax/jccodilla@gmail.com', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({
+          _subject: `[Lucas Extreme Battlefield] Suggestion: ${category}`,
+          _template: 'table',
+          Player: name,
+          Category: category,
+          Suggestion: message,
+          App: 'Lucas Extreme Battlefield by JMC Labs (for Lucas the Pogi)',
+        }),
+        signal: ac.signal,
+      });
+      clearTimeout(timer);
+      forwarded = emailRes.ok;
+    } catch {}
+
+    res.json({ ok: true, to: 'jccodilla@gmail.com', forwarded });
   });
 
   const isProd = process.env.NODE_ENV === 'production';

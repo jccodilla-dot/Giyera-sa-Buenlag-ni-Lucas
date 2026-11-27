@@ -1405,6 +1405,125 @@
     els.lobbyHighWave.textContent = 'BEST WAVE: ' + state.highWave;
     els.lobbyCredits.textContent = 'CREDITS: ₱' + state.credits;
 
+    // JMC Labs Support (GCash/PayMaya Donate + Automatic Suggestions to jccodilla@gmail.com)
+    (function initSupportModal() {
+      var supportOv = document.getElementById('support-overlay');
+      var donateChan = 'GCash';
+      var donateAmt = 20;
+      var amtInp = document.getElementById('inp-donate-custom');
+      var sumEl = document.getElementById('donate-summary');
+      var fbEl = document.getElementById('donate-feedback');
+      var suggestFrom = document.getElementById('inp-suggest-from');
+      var suggestCat = document.getElementById('sel-suggest-cat');
+      var suggestMsg = document.getElementById('inp-suggest-msg');
+      var suggestStatus = document.getElementById('suggest-status');
+      var mailtoLink = document.getElementById('lnk-suggest-mailto');
+
+      function refreshDonateSummary() {
+        var amt = Math.max(1, Number(amtInp.value) || donateAmt);
+        donateAmt = amt;
+        sumEl.textContent = donateChan + ' • ₱' + amt + ' → Joseph Michael Codilla';
+      }
+      function updateMailtoHref() {
+        var sub = encodeURIComponent('[Lucas Extreme Battlefield] ' + suggestCat.value);
+        var body = encodeURIComponent('From: ' + (suggestFrom.value.trim() || state.playerName) + '\n\n' + suggestMsg.value.trim());
+        mailtoLink.href = 'mailto:jccodilla@gmail.com?subject=' + sub + '&body=' + body;
+      }
+
+      document.querySelectorAll('.donate-chan').forEach(function (b) {
+        b.addEventListener('click', function () {
+          donateChan = b.getAttribute('data-chan') || 'GCash';
+          document.querySelectorAll('.donate-chan').forEach(function (x) {
+            x.style.borderColor = x === b ? 'var(--gold)' : 'rgba(255,255,255,0.25)';
+          });
+          refreshDonateSummary();
+        });
+      });
+      document.querySelectorAll('.donate-amt').forEach(function (b) {
+        b.addEventListener('click', function () {
+          amtInp.value = b.getAttribute('data-amt') || '20';
+          refreshDonateSummary();
+        });
+      });
+      amtInp.addEventListener('input', refreshDonateSummary);
+
+      document.getElementById('btn-copy-donate').addEventListener('click', function () {
+        refreshDonateSummary();
+        var txt = 'Donation for Lucas Extreme Battlefield (Made by JMC Labs for Lucas the Pogi): ₱' + donateAmt + ' via ' + donateChan + ' to Joseph Michael Codilla';
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(txt).catch(function () {});
+        }
+        fbEl.textContent = 'Copied! Thank you for supporting Joseph Michael Codilla & Lucas the Pogi!';
+        window.GameAudio.pickup();
+      });
+
+      function openSupport(focusSuggest) {
+        suggestFrom.value = suggestFrom.value || state.playerName;
+        supportOv.classList.remove('hidden');
+        if (focusSuggest) suggestMsg.focus();
+      }
+      document.getElementById('lobby-support').addEventListener('click', function () { openSupport(false); });
+      document.getElementById('btn-open-donate').addEventListener('click', function () { openSupport(false); });
+      document.getElementById('btn-open-suggest').addEventListener('click', function () { openSupport(true); });
+      document.getElementById('btn-close-support').addEventListener('click', function () { supportOv.classList.add('hidden'); });
+
+      suggestCat.addEventListener('change', updateMailtoHref);
+      suggestMsg.addEventListener('input', updateMailtoHref);
+      suggestFrom.addEventListener('input', updateMailtoHref);
+
+      function postSuggestionPayload(payload) {
+        var apiBase = (window.GameNet && window.GameNet.getApiBase) ? window.GameNet.getApiBase() : '';
+        return fetch(apiBase + '/api/suggestions', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(function (r) { return r.json(); });
+      }
+
+      try {
+        var queued = JSON.parse(localStorage.getItem('lucas_pending_suggestions') || '[]');
+        if (Array.isArray(queued) && queued.length > 0 && navigator.onLine) {
+          Promise.all(queued.map(postSuggestionPayload)).then(function () {
+            localStorage.removeItem('lucas_pending_suggestions');
+          }).catch(function () {});
+        }
+      } catch (e) {}
+
+      document.getElementById('btn-send-suggest').addEventListener('click', function () {
+        var msg = suggestMsg.value.trim();
+        if (!msg) {
+          suggestStatus.style.color = '#f87171';
+          suggestStatus.textContent = 'Please write your suggestion first.';
+          return;
+        }
+        var payload = {
+          name: suggestFrom.value.trim() || state.playerName || 'Player',
+          category: suggestCat.value,
+          message: msg,
+        };
+        suggestStatus.style.color = '#fde68a';
+        suggestStatus.textContent = 'Sending automatically to jccodilla@gmail.com...';
+        postSuggestionPayload(payload).then(function (res) {
+          if (res && res.ok) {
+            suggestStatus.style.color = '#84cc16';
+            suggestStatus.textContent = 'Suggestion sent automatically to jccodilla@gmail.com! Salamat!';
+            suggestMsg.value = '';
+            window.GameAudio.pickup();
+          } else {
+            throw new Error('send failed');
+          }
+        }).catch(function () {
+          try {
+            var q = JSON.parse(localStorage.getItem('lucas_pending_suggestions') || '[]');
+            q.push(payload);
+            localStorage.setItem('lucas_pending_suggestions', JSON.stringify(q));
+          } catch (e) {}
+          suggestStatus.style.color = '#38bdf8';
+          suggestStatus.textContent = 'Saved offline & queued for jccodilla@gmail.com (or tap MAIL APP).';
+        });
+      });
+    })();
+
     document.getElementById('btn-play-solo').addEventListener('click', function () { beginMatch('solo'); });
 
     window.GameNet.connect();

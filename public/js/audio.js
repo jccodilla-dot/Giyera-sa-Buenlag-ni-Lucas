@@ -104,50 +104,118 @@
     osc.stop(t0 + dur + 0.02);
   }
 
-  // Flirty "Patay!" vocalization + loud "Nyahahahahaha" cackle on death
+  var demonCurve = null;
+  function getDemonShaper(c) {
+    if (!demonCurve) {
+      demonCurve = new Float32Array(256);
+      for (var i = 0; i < 256; i++) {
+        var x = (i * 2) / 256 - 1;
+        demonCurve[i] = ((3 + 12) * x * 20 * (Math.PI / 180)) / (Math.PI + 12 * Math.abs(x));
+      }
+    }
+    var shaper = c.createWaveShaper();
+    shaper.curve = demonCurve;
+    shaper.oversample = '2x';
+    return shaper;
+  }
+
+  function playDemonLaughSyllable(pitchStart, pitchEnd, dur, vol, delay) {
+    var c = ensureAudio();
+    if (!c) return;
+    var t0 = c.currentTime + (delay || 0);
+
+    // Primary deep male vocal cords + sub-octave demonic growl
+    var oscMain = c.createOscillator();
+    oscMain.type = 'sawtooth';
+    oscMain.frequency.setValueAtTime(pitchStart, t0);
+    oscMain.frequency.exponentialRampToValueAtTime(Math.max(42, pitchEnd), t0 + dur);
+
+    var oscSub = c.createOscillator();
+    oscSub.type = 'triangle';
+    oscSub.frequency.setValueAtTime(pitchStart * 0.5, t0);
+    oscSub.frequency.exponentialRampToValueAtTime(Math.max(24, pitchEnd * 0.5), t0 + dur);
+
+    var shaper = getDemonShaper(c);
+
+    // Dark masculine throat formants ("HA" / "MWA")
+    var f1 = c.createBiquadFilter();
+    f1.type = 'bandpass';
+    f1.frequency.setValueAtTime(520, t0);
+    f1.Q.value = 3.8;
+
+    var f2 = c.createBiquadFilter();
+    f2.type = 'bandpass';
+    f2.frequency.setValueAtTime(980, t0);
+    f2.Q.value = 4.6;
+
+    var lowBoost = c.createBiquadFilter();
+    lowBoost.type = 'lowpass';
+    lowBoost.frequency.setValueAtTime(1450, t0);
+
+    var g = c.createGain();
+    g.gain.setValueAtTime(0.001, t0);
+    g.gain.linearRampToValueAtTime(vol, t0 + 0.025);
+    g.gain.exponentialRampToValueAtTime(0.001, t0 + dur);
+
+    oscMain.connect(shaper);
+    oscSub.connect(lowBoost);
+    shaper.connect(f1);
+    shaper.connect(f2);
+    f1.connect(lowBoost);
+    f2.connect(lowBoost);
+    lowBoost.connect(g);
+    g.connect(masterGain);
+
+    oscMain.start(t0);
+    oscSub.start(t0);
+    oscMain.stop(t0 + dur + 0.03);
+    oscSub.stop(t0 + dur + 0.03);
+  }
+
+  // "Patay!" vocalization + deep Male Demon Laugh ("MWA-HA-HA-HA-HA!") on death
   function playDeathPatayLaugh() {
     var c = ensureAudio();
     if (!c) return;
     var nowMs = performance.now();
-    if (nowMs - lastLaughTime < 650) return;
+    if (nowMs - lastLaughTime < 750) return;
     lastLaughTime = nowMs;
 
-    // 1. SpeechSynthesis flirty "Patay~" if available on device
+    // 1. SpeechSynthesis deep male demon voice if available on device
     try {
       if (window.speechSynthesis && !muted) {
         window.speechSynthesis.cancel();
-        var utter = new SpeechSynthesisUtterance('Patay! Nyahahahahaha!');
-        utter.pitch = 1.65;
-        utter.rate = 1.15;
+        var utter = new SpeechSynthesisUtterance('Patay! Mwa ha ha ha ha!');
+        utter.pitch = 0.25;
+        utter.rate = 0.88;
         utter.volume = 1.0;
         var voices = window.speechSynthesis.getVoices();
-        var fem = voices.find(function (v) { return /female|samantha|zira|hazel|google/i.test(v.name); });
-        if (fem) utter.voice = fem;
+        var maleVoice = voices.find(function (v) { return /male|david|mark|daniel|alex|george|ryan/i.test(v.name); });
+        if (maleVoice) utter.voice = maleVoice;
         window.speechSynthesis.speak(utter);
       }
     } catch (e) {}
 
-    // 2. Guaranteed Offline Web Audio formant "Pa-tay~" + Loud "Nya-ha-ha-ha-ha-ha!"
-    // "Pa-"
-    playNoise(0.03, 1800, 1.5, 0.5, 0.0);
-    playFormantSyllable(290, 340, 780, 1280, 0.14, 0.95, 0.02);
-    // "-tay~" (flirty upward swoop)
-    playNoise(0.025, 3400, 1.8, 0.55, 0.17);
-    playFormantSyllable(330, 480, 720, 1850, 0.24, 1.05, 0.19);
+    // 2. Guaranteed Offline Web Audio: "Pa-tay!" + Booming Male Demon Laugh
+    playNoise(0.03, 1500, 1.4, 0.45, 0.0);
+    playFormantSyllable(210, 240, 740, 1220, 0.13, 0.82, 0.02);
+    playNoise(0.025, 2800, 1.5, 0.45, 0.16);
+    playFormantSyllable(240, 310, 680, 1580, 0.2, 0.88, 0.18);
 
-    // Loud laughing "Nya-ha-ha-ha-ha-ha!"
-    var laughNotes = [
-      [0.48, 520, 420, 820, 1900, 0.14],
-      [0.64, 480, 390, 760, 1520, 0.12],
-      [0.78, 495, 405, 760, 1520, 0.12],
-      [0.92, 460, 370, 760, 1520, 0.12],
-      [1.06, 440, 345, 760, 1520, 0.13],
-      [1.21, 415, 290, 740, 1460, 0.22],
+    // Deep echoing male demon laugh: "MWA-HA-HA-HA-HA-HA!"
+    var demonSyllables = [
+      [0.42, 148, 102, 0.24, 1.35],
+      [0.68, 138, 94,  0.22, 1.35],
+      [0.92, 130, 86,  0.22, 1.35],
+      [1.16, 122, 78,  0.22, 1.30],
+      [1.40, 114, 68,  0.24, 1.25],
+      [1.66, 104, 52,  0.42, 1.40],
     ];
-    for (var i = 0; i < laughNotes.length; i++) {
-      var n = laughNotes[i];
-      playNoise(0.055, 2100, 1.1, 0.65, n[0]);
-      playFormantSyllable(n[1], n[2], n[3], n[4], n[5], 1.25, n[0]);
+    for (var i = 0; i < demonSyllables.length; i++) {
+      var s = demonSyllables[i];
+      playNoise(0.08, 620, 0.9, 0.52, s[0]);
+      playDemonLaughSyllable(s[1], s[2], s[3], s[4], s[0]);
+      // Subtle cavernous echo tail
+      playDemonLaughSyllable(s[1] * 0.96, s[2] * 0.92, s[3], s[4] * 0.36, s[0] + 0.11);
     }
   }
 

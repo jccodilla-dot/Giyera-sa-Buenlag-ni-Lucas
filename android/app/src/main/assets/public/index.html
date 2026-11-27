@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Lucas Extreme Battlefield</title>
+    <meta name="description" content="3D mobile tactical FPS with 5-player LAN war mode, 5 colorful terrains, rigged Soldier AI with distinct masks, combat drone, grenades, EMP, and offline waves." />
+    <meta property="og:title" content="Lucas Extreme Battlefield" />
+    <meta property="og:description" content="3D mobile tactical FPS with 5-player LAN war mode, 5 colorful terrains, rigged Soldier AI with distinct masks, combat drone, grenades, EMP, and offline waves." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#111519" />
+    <link rel="icon" type="image/jpeg" href="./assets/face.jpg" />
+    <style>:root{--bg-slate:#111519;--panel-dark:#0e1319db;--border-olive:#e5b84273;--border-steel:#ffffff2e;--gold:#e5b842;--olive-lime:#84cc16;--tac-blue:#38bdf8;--hostile-red:#ef4444;--text-main:#f8fafc;--text-muted:#94a3b8;--font-display:"Rajdhani", "Bahnschrift", "Segoe UI", system-ui, sans-serif;--font-mono:"JetBrains Mono", ui-monospace, Menlo, Consolas, monospace}*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-user-select:none;user-select:none}html,body{background:var(--bg-slate);width:100%;height:100%;color:var(--text-main);font-family:var(--font-display);touch-action:none;margin:0;padding:0;overflow:hidden}input,select{-webkit-user-select:text;user-select:text;font-family:inherit}#game-canvas-container{z-index:1;width:100%;height:100%;position:fixed;inset:0}#game-canvas-container canvas{width:100%;height:100%;display:block}#damage-vignette,#ads-vignette{z-index:4;pointer-events:none;opacity:0;transition:opacity .11s;position:fixed;inset:0}#damage-vignette{background:radial-gradient(circle,#0000 44%,#dc2626b3 100%)}#ads-vignette{background:radial-gradient(circle,#0000 52%,#080c1294 100%)}#floating-layer{z-index:5;pointer-events:none;position:fixed;inset:0;overflow:hidden}.dmg-float{font-family:var(--font-mono);text-shadow:0 2px 6px #000;font-size:15px;font-weight:800;animation:.52s ease-out forwards dmgUp;position:absolute;transform:translate(-50%,-50%)}@keyframes dmgUp{0%{opacity:1;margin-top:0}to{opacity:0;margin-top:-28px}}#crosshair{z-index:6;pointer-events:none;width:32px;height:32px;display:none;position:fixed;top:50%;left:50%;transform:translate(-50%,-50%)}.ch-pip{background:#ffffffeb;position:absolute;box-shadow:0 0 4px #000}.ch-top{width:2px;height:7px;top:1px;left:15px}.ch-bot{width:2px;height:7px;bottom:1px;left:15px}.ch-left{width:7px;height:2px;top:15px;left:1px}.ch-right{width:7px;height:2px;top:15px;right:1px}.ch-dot{background:#ef4444;border-radius:50%;width:4px;height:4px;position:absolute;top:14px;left:14px}#hitmarker{opacity:0;transition:opacity 75ms,transform 75ms;position:absolute;inset:0;transform:scale(.8)}#hitmarker.active{opacity:1;transform:scale(1.1)}#hitmarker:before,#hitmarker:after{content:"";background:#fff;width:18px;height:2px;position:absolute;top:50%;left:50%}#hitmarker.kill:before,#hitmarker.kill:after{background:#ef4444}#hitmarker.headshot:before,#hitmarker.headshot:after{background:var(--gold);width:22px}#hitmarker:before{transform:translate(-50%,-50%)rotate(45deg)}#hitmarker:after{transform:translate(-50%,-50%)rotate(-45deg)}#hud{z-index:10;pointer-events:none;display:none;position:fixed;inset:0}.hud-top{top:max(8px, env(safe-area-inset-top));left:max(8px, env(safe-area-inset-left));right:max(8px, env(safe-area-inset-right));justify-content:space-between;align-items:flex-start;gap:6px;display:flex;position:absolute}.hud-left-col{flex-direction:column;gap:5px;max-width:195px;display:flex}.player-vitals-card{background:var(--panel-dark);border:1px solid var(--border-steel);border-radius:5px;padding:6px 8px}.vitals-head{align-items:center;gap:6px;margin-bottom:4px;display:flex}.avatar-frame{border:1.5px solid var(--gold);border-radius:4px;flex-shrink:0;width:30px;height:30px;overflow:hidden}.avatar-frame img{object-fit:cover;width:100%;height:100%;display:block}.vitals-name{white-space:nowrap;text-overflow:ellipsis;max-width:120px;font-size:12px;font-weight:700;overflow:hidden}.vitals-sub{font-family:var(--font-mono);color:var(--olive-lime);align-items:center;gap:6px;font-size:10px;display:flex}.patch-tag{color:#fff;background:#ffffff1f;border-radius:3px;padding:1px 4px;font-weight:700}.bar-track{background:#ffffff24;border-radius:2px;width:100%;height:5px;margin-bottom:3px;overflow:hidden}.bar-fill{height:100%;transition:width .11s}.bar-hp{background:#84cc16}.bar-shield{background:#38bdf8}.killfeed{font-size:10px;font-family:var(--font-mono);flex-direction:column;gap:2px;display:flex}.kf-line{background:#0c1014b8;border-radius:3px;width:fit-content;padding:2px 6px}.compass-wrap{background:var(--panel-dark);border:1px solid var(--border-steel);text-align:center;border-radius:5px;min-width:126px;padding:4px 10px}.compass-strip{font-family:var(--font-mono);color:#cbd5e1;border-bottom:1px solid #ffffff1f;padding-bottom:2px;font-size:11px;font-weight:700}.compass-bearing{color:var(--gold)}.wave-row{justify-content:center;align-items:center;gap:6px;margin-top:2px;font-size:11px;font-weight:700;display:flex}.wave-hostiles{color:#f87171;font-family:var(--font-mono)}.hud-right-col{flex-direction:column;align-items:flex-end;gap:5px;display:flex}.hud-right-top{align-items:flex-start;gap:6px;display:flex}.minimap-box{border:1.5px solid var(--gold);background:#0a0f16e0;border-radius:6px;width:96px;height:96px;position:relative;overflow:hidden;box-shadow:0 4px 14px #0000008c}.minimap-label{font-size:8px;font-family:var(--font-mono);color:var(--gold);pointer-events:none;font-weight:700;position:absolute;top:2px;left:4px}#minimap-canvas{width:100%;height:100%;display:block}.economy-box{background:var(--panel-dark);border:1px solid var(--border-olive);text-align:right;border-radius:5px;padding:4px 7px}.credits-val{font-family:var(--font-mono);color:var(--gold);font-size:13px;font-weight:800}.combo-val{font-family:var(--font-mono);color:#cbd5e1;font-size:10px}.hud-btn-row{flex-wrap:wrap;justify-content:flex-end;gap:4px;display:flex}.hud-btn{pointer-events:auto;background:var(--panel-dark);color:#f8fafc;min-height:32px;font-family:var(--font-display);cursor:pointer;border:1px solid #ffffff3d;border-radius:4px;padding:0 8px;font-size:11px;font-weight:700}.hud-btn.gold{border-color:var(--border-olive);color:var(--gold)}.hud-btn.exit{color:#fca5a5;border-color:#ef444499}.ammo-readout{bottom:max(66px, calc(env(safe-area-inset-bottom) + 62px));background:var(--panel-dark);border:1px solid var(--border-steel);font-family:var(--font-mono);border-radius:4px;align-items:baseline;gap:6px;padding:2px 12px;display:flex;position:absolute;left:50%;transform:translate(-50%)}.ammo-mag{font-size:19px;font-weight:800}.ammo-res{color:var(--text-muted);font-size:11px}.weapon-dock{bottom:max(10px, env(safe-area-inset-bottom));pointer-events:auto;background:var(--panel-dark);border:1px solid var(--border-steel);border-radius:5px;gap:4px;padding:4px;display:flex;position:absolute;left:50%;transform:translate(-50%)}.weapon-slot{min-width:52px;color:var(--text-muted);cursor:pointer;text-align:center;background:#ffffff0d;border:1px solid #0000;border-radius:3px;padding:4px 6px}.weapon-slot.active{border-color:var(--gold);color:#fff;background:#e5b84233}.weapon-slot.locked{opacity:.45}.ws-name{font-size:10px;font-weight:700}.ws-ammo{font-family:var(--font-mono);font-size:9px}#joystick-zone{pointer-events:auto;z-index:2;width:42%;height:46%;position:absolute;bottom:0;left:0}#joystick-base{left:max(20px, env(safe-area-inset-left));bottom:max(22px, env(safe-area-inset-bottom));background:#1014187a;border:2px solid #ffffff57;border-radius:50%;width:108px;height:108px;position:absolute}#joystick-knob{background:#f1f5f9e0;border:2px solid #fff;border-radius:50%;width:44px;height:44px;margin:-22px 0 0 -22px;position:absolute;top:50%;left:50%}#look-zone{pointer-events:auto;z-index:1;position:absolute;inset:104px 0 0 42%}.action-cluster{right:max(10px, env(safe-area-inset-right));bottom:max(16px, env(safe-area-inset-bottom));z-index:3;pointer-events:none;grid-template-rows:48px 48px 48px 68px;grid-template-columns:50px 50px 68px;place-items:center;gap:6px;display:grid;position:absolute}.touch-btn{pointer-events:auto;color:#fff;font-family:var(--font-display);cursor:pointer;background:#0e1319d1;border:1.5px solid #ffffff5c;border-radius:50%;flex-direction:column;justify-content:center;align-items:center;width:48px;height:48px;font-size:10px;font-weight:800;line-height:1.05;display:flex}.touch-btn.active{border-color:var(--gold);color:var(--gold);background:#e5b84259}#btn-lookback{color:#bae6fd;text-align:center;border-color:#38bdf8;grid-area:2/1;font-size:9px}#btn-grenade{color:#fed7aa;border-color:#f97316;grid-area:3/1}#btn-emp{color:#7dd3fc;border-color:#38bdf8;grid-area:2/2}#btn-jump{color:#d9f99d;border-color:#a3e635;grid-area:3/2}#btn-ads{border-color:var(--gold);width:52px;height:52px;color:var(--gold);grid-area:2/3}#btn-swap{grid-area:4/1}#btn-reload{grid-area:4/2}#btn-fire{border:2px solid var(--gold);background:#b91c1ccc;grid-area:3/3/span 2;width:68px;height:68px;font-size:13px}#btn-fire.firing{background:#ef4444f5}#wave-banner{z-index:9;pointer-events:none;border:1.5px solid var(--gold);text-align:center;opacity:0;background:#0e1216eb;border-radius:6px;padding:8px 20px;transition:all .18s;position:fixed;top:22%;left:50%;transform:translate(-50%,-50%)scale(.95)}#wave-banner.show{opacity:1;transform:translate(-50%,-50%)scale(1)}#wave-banner-title{color:var(--gold);font-size:20px;font-weight:800}#wave-banner-sub{color:var(--text-muted);font-size:12px}.overlay{z-index:30;background:linear-gradient(90deg,#0b0f16e0 0%,#0b0f1673 58%,#0b0f1633 100%);flex-direction:column;justify-content:space-between;padding:10px 12px;display:flex;position:fixed;inset:0;overflow-y:auto}.overlay.hidden{display:none}.lobby-topbar{flex-wrap:wrap;justify-content:space-between;align-items:center;gap:8px;display:flex}.brand-title{color:var(--gold);letter-spacing:.05em;font-size:20px;font-weight:800}.lobby-grid{grid-template-columns:minmax(270px,390px);gap:8px;margin:8px 0;display:grid}.panel{background:var(--panel-dark);border:1px solid var(--border-steel);border-radius:6px;flex-direction:column;gap:7px;padding:10px;display:flex}.row{flex-wrap:wrap;align-items:center;gap:6px;display:flex}.field-label{color:var(--text-muted);text-transform:uppercase;font-size:11px;font-weight:700}.tac-input,.tac-select{color:#fff;background:#0f172a;border:1px solid #ffffff38;border-radius:4px;width:100%;padding:6px 8px;font-size:13px}.avatar-pair{align-items:center;gap:8px;display:flex}.avatar-pair img{border:1.5px solid var(--gold);object-fit:cover;border-radius:6px;width:48px;height:48px}.swatch-btn{cursor:pointer;border:2px solid #0000;border-radius:50%;width:24px;height:24px}.swatch-btn.active{border-color:#fff;transform:scale(1.15)}.cta-btn{background:var(--gold);color:#0f172a;font-family:var(--font-display);cursor:pointer;border:none;border-radius:5px;padding:9px 12px;font-size:14px;font-weight:800}.sec-btn{color:#f8fafc;font-family:var(--font-display);cursor:pointer;background:#1e293be6;border:1px solid #ffffff40;border-radius:5px;padding:7px 10px;font-size:12px;font-weight:700}.danger-btn{color:#fff;cursor:pointer;background:#b91c1cd9;border:1px solid #ef4444;border-radius:5px;padding:8px 12px;font-weight:800}.roster-pill{background:#0f172ad9;border:1px solid #ffffff29;border-radius:5px;align-items:center;gap:6px;padding:4px 6px;display:flex}.roster-pill img{object-fit:cover;border:1px solid var(--gold);border-radius:4px;width:34px;height:34px}.rp-name{font-size:12px;font-weight:700}.rp-meta{color:var(--text-muted);font-size:10px}.net-room-row{background:#0f172acc;border-radius:4px;justify-content:space-between;align-items:center;margin-top:3px;padding:4px 7px;font-size:11px;display:flex}.net-join-quick{background:var(--gold);color:#111;cursor:pointer;border:none;border-radius:3px;padding:3px 8px;font-weight:800}.net-empty{color:var(--text-muted);font-size:11px}.center-modal{z-index:40;background:#060a10d1;justify-content:center;align-items:center;padding:14px;display:flex;position:fixed;inset:0}.center-modal.hidden{display:none}.modal-card{border:2px solid var(--gold);background:#111827;border-radius:8px;width:100%;max-width:520px;max-height:90vh;padding:16px;overflow-y:auto}.shop-grid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;margin-top:10px;display:grid}.shop-card{background:#1e293b;border:1px solid #ffffff24;border-radius:5px;flex-direction:column;justify-content:space-between;gap:6px;padding:8px;display:flex}.shop-title{color:var(--gold);font-size:13px;font-weight:800}.shop-desc{color:#cbd5e1;font-size:11px}.shop-buy{background:var(--gold);color:#111;cursor:pointer;border:none;border-radius:4px;padding:6px;font-weight:800}.death-headline{color:#ef4444;text-align:center;margin-bottom:8px;font-size:22px;font-weight:900;line-height:1.25}#spectate-bar{z-index:25;background:var(--panel-dark);border:1.5px solid var(--gold);border-radius:6px;align-items:center;gap:8px;padding:6px 12px;display:flex;position:fixed;top:14px;left:50%;transform:translate(-50%)}#spectate-bar.hidden{display:none}@media (width<=600px){.compass-wrap{display:none}.minimap-box{width:82px;height:82px}}</style>
+  </head>
+  <body>
+    <div id="game-canvas-container"></div>
+    <div id="damage-vignette"></div>
+    <div id="ads-vignette"></div>
+    <div id="floating-layer"></div>
+
+    <div id="crosshair">
+      <div class="ch-pip ch-top"></div>
+      <div class="ch-pip ch-bot"></div>
+      <div class="ch-pip ch-left"></div>
+      <div class="ch-pip ch-right"></div>
+      <div class="ch-dot"></div>
+      <div id="hitmarker"></div>
+    </div>
+
+    <div id="wave-banner">
+      <div id="wave-banner-title">WAVE 1</div>
+      <div id="wave-banner-sub">HOSTILES INBOUND</div>
+    </div>
+
+    <!-- In-Game HUD -->
+    <div id="hud">
+      <div class="hud-top">
+        <div class="hud-left-col">
+          <div class="player-vitals-card">
+            <div class="vitals-head">
+              <div class="avatar-frame"><img id="hud-avatar" src="./assets/face.jpg" alt="Lucas" /></div>
+              <div>
+                <div class="vitals-name" id="hud-name">[PH] Lucas</div>
+                <div class="vitals-sub">
+                  <span id="hud-hp">250 HP</span>
+                  <span class="patch-tag" id="hud-patch">PH</span>
+                  <span id="drone-status">DRONE: OFF</span>
+                </div>
+              </div>
+            </div>
+            <div class="bar-track"><div class="bar-fill bar-hp" id="hud-hp-bar" style="width:100%"></div></div>
+            <div class="bar-track"><div class="bar-fill bar-shield" id="hud-armor-bar" style="width:80%"></div></div>
+          </div>
+          <div class="killfeed" id="killfeed"></div>
+        </div>
+
+        <div class="compass-wrap">
+          <div class="compass-strip">NW • N • <span class="compass-bearing" id="compass-bearing">0°</span> • E • SE</div>
+          <div class="wave-row">
+            <span id="hud-wave">WAVE 1</span>
+            <span class="wave-hostiles" id="hud-hostiles">0 HOSTILES</span>
+          </div>
+        </div>
+
+        <!-- Upper-Right Minimap & Action Controls -->
+        <div class="hud-right-col">
+          <div class="hud-right-top">
+            <div class="economy-box">
+              <div class="credits-val" id="hud-credits">₱300</div>
+              <div class="combo-val" id="hud-combo">x1 COMBO</div>
+            </div>
+            <div class="minimap-box">
+              <div class="minimap-label">RADAR</div>
+              <canvas id="minimap-canvas" width="140" height="140"></canvas>
+            </div>
+          </div>
+          <div class="hud-btn-row">
+            <button class="hud-btn gold" id="btn-shop">ARMORY</button>
+            <button class="hud-btn" id="btn-cam">1ST</button>
+            <button class="hud-btn" id="btn-quality">HD</button>
+            <button class="hud-btn" id="btn-fullscreen">FS</button>
+            <button class="hud-btn exit" id="btn-exit">EXIT</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ammo-readout">
+        <span class="ammo-mag" id="hud-ammo-mag">30</span>
+        <span class="ammo-res" id="hud-ammo-res">/ 120</span>
+      </div>
+      <div class="weapon-dock" id="weapon-dock"></div>
+
+      <div id="joystick-zone">
+        <div id="joystick-base"><div id="joystick-knob"></div></div>
+      </div>
+      <div id="look-zone"></div>
+
+      <div class="action-cluster">
+        <button class="touch-btn" id="btn-lookback">LOOK<br/>BACK</button>
+        <button class="touch-btn" id="btn-emp">EMP<span id="emp-count">1</span></button>
+        <button class="touch-btn" id="btn-ads">ADS</button>
+        <button class="touch-btn" id="btn-grenade">FRAG<span id="grenade-count">2</span></button>
+        <button class="touch-btn" id="btn-jump">JUMP</button>
+        <button class="touch-btn" id="btn-swap">SWAP</button>
+        <button class="touch-btn" id="btn-reload">RLD</button>
+        <button class="touch-btn" id="btn-fire">FIRE</button>
+      </div>
+    </div>
+
+    <!-- Spectate Bar -->
+    <div id="spectate-bar" class="hidden">
+      <span id="spectate-label" style="font-weight:800;color:var(--gold)">WATCHING BATTLE</span>
+      <button class="sec-btn" id="spec-btn-next">NEXT CAM</button>
+      <button class="sec-btn" id="spec-btn-lobby">LOBBY</button>
+      <button class="danger-btn" id="spec-btn-exit">EXIT</button>
+    </div>
+
+    <!-- Lobby / Start Screen -->
+    <div id="start-overlay" class="overlay">
+      <div class="lobby-topbar">
+        <div>
+          <div class="brand-title">LUCAS EXTREME BATTLEFIELD</div>
+          <div style="font-size:12px;font-weight:800;color:#fde68a;letter-spacing:0.03em">
+            MADE BY JMC LABS • MADE FOR LUCAS THE POGI
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">
+            <span id="lobby-high-wave">BEST WAVE: 1</span> • <span id="lobby-credits">CREDITS: ₱300</span>
+          </div>
+        </div>
+        <div class="row">
+          <button class="cta-btn" id="lobby-support" style="padding:7px 10px;font-size:12px">DONATE / SUGGEST</button>
+          <button class="sec-btn" id="lobby-quality">QUALITY: HD</button>
+          <button class="sec-btn" id="lobby-fullscreen">FULLSCREEN</button>
+          <button class="danger-btn" id="lobby-exit">EXIT GAME</button>
+        </div>
+      </div>
+
+      <div class="lobby-grid">
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <div class="avatar-pair">
+              <img id="lobby-avatar" src="./assets/face.jpg" alt="Face" />
+              <img id="lobby-caricature" src="./assets/face.jpg" alt="Caricature" title="Network Caricature" />
+            </div>
+            <label class="sec-btn" style="cursor:pointer">
+              UPLOAD FACE
+              <input id="inp-face-file" type="file" accept="image/jpeg,image/png" style="display:none" />
+            </label>
+          </div>
+
+          <div class="row">
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Soldier Name</div>
+              <input id="inp-player-name" class="tac-input" maxlength="16" value="Lucas" />
+            </div>
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Country Patch</div>
+              <select id="sel-country" class="tac-select"></select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Operator Character</div>
+              <select id="sel-gender" class="tac-select">
+                <option value="male">Male Soldier (Lucas)</option>
+                <option value="female">Lady Operative</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Main Uniform (Unique)</div>
+              <select id="sel-uniform" class="tac-select"></select>
+            </div>
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Battle Terrain (5)</div>
+              <select id="sel-terrain" class="tac-select"></select>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:4px">Tactical Theme Color</div>
+            <div class="row" id="theme-swatches"></div>
+          </div>
+
+          <button class="cta-btn" id="btn-play-solo">DEPLOY SOLO WAVES (OFFLINE READY)</button>
+        </div>
+
+        <!-- 5-Player Single-Host Network War Panel -->
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <div class="field-label" style="color:var(--gold)">NETWORK WAR (MAX 5 • 1 HOST ONLY)</div>
+            <span id="net-status" style="font-size:10px;color:var(--tac-blue)">CONNECTING...</span>
+          </div>
+          <label class="row" style="font-size:11px;color:#cbd5e1;cursor:pointer">
+            <input type="checkbox" id="chk-net-bots" checked />
+            <span>Mix w/ Country Army Bots (Uncheck = Network Players Only)</span>
+          </label>
+          <div class="row">
+            <input id="net-code-input" class="tac-input" style="flex:1;text-transform:uppercase" maxlength="6" placeholder="ROOM CODE (e.g. WAR1)" />
+            <button class="cta-btn" id="btn-host-room">HOST WAR</button>
+            <button class="sec-btn" id="btn-join-room">JOIN</button>
+            <button class="sec-btn" id="btn-refresh-rooms">LIST</button>
+          </div>
+          <div id="net-room-list"></div>
+
+          <div id="net-room-box" class="hidden" style="border-top:1px solid rgba(255,255,255,0.14);padding-top:6px">
+            <div class="row" style="justify-content:space-between;margin-bottom:4px">
+              <b id="net-room-code" style="color:var(--gold)">ROOM</b>
+              <div class="row">
+                <button class="cta-btn" id="btn-start-net-match" style="padding:5px 10px;font-size:12px">LAUNCH WAR MATCH</button>
+                <button class="sec-btn" id="btn-leave-room">LEAVE</button>
+              </div>
+            </div>
+            <div class="row" id="net-roster"></div>
+          </div>
+        </div>
+
+        <!-- JMC Labs Credits, GCash/PayMaya Support & Suggestions -->
+        <div class="panel" style="border-color:var(--border-olive)">
+          <div style="font-size:12px;font-weight:800;color:var(--gold)">MADE BY JMC LABS • FOR LUCAS THE POGI</div>
+          <div style="font-size:11px;color:#e2e8f0;line-height:1.35">
+            Donate <b>₱10</b>, <b>₱20</b>, <b>₱50</b> or any amount thru <b>GCash</b> or <b>PayMaya</b> to <b>Joseph Michael Codilla</b> to keep the game going.
+          </div>
+          <div class="row">
+            <button class="cta-btn" id="btn-open-donate" style="flex:1;padding:6px 10px;font-size:12px">DONATE (GCASH / PAYMAYA)</button>
+            <button class="sec-btn" id="btn-open-suggest" style="flex:1">SUGGEST (→ jccodilla@gmail.com)</button>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:#cbd5e1">
+        Desktop: WASD Move • Click Look • R Reload • B Look Back • G Grenade • E EMP | Mobile: Left Stick • Right Drag • Thumb Buttons
+      </div>
+    </div>
+
+    <!-- Armory / Shop Modal -->
+    <div id="shop-overlay" class="center-modal hidden">
+      <div class="modal-card">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div style="font-size:18px;font-weight:800;color:var(--gold)">TACTICAL ARMORY</div>
+            <div style="font-size:12px;color:#cbd5e1">Credits: <b id="shop-credits" style="color:var(--gold)">₱300</b></div>
+          </div>
+          <button class="sec-btn" id="btn-close-shop">RESUME BATTLE</button>
+        </div>
+        <div class="shop-grid" id="shop-grid"></div>
+      </div>
+    </div>
+
+    <!-- Exact Required Death Popup -->
+    <div id="death-overlay" class="center-modal hidden">
+      <div class="modal-card" style="text-align:center;border-color:#ef4444">
+        <div class="death-headline">YOU WERE KILLED IN BATTLE! KAIN KA PA MARAMING BIGAS BOY!</div>
+        <div id="death-killer" style="font-size:13px;color:#cbd5e1;margin-bottom:14px">Eliminated in combat</div>
+        <div class="row" style="justify-content:center;gap:10px">
+          <button class="cta-btn" id="death-btn-spectate">CONTINUE WATCHING</button>
+          <button class="sec-btn" id="death-btn-lobby">RETURN TO LOBBY</button>
+          <button class="danger-btn" id="death-btn-exit">EXIT GAME</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match Winner Modal -->
+    <div id="winner-overlay" class="center-modal hidden">
+      <div class="modal-card" style="text-align:center">
+        <div style="font-size:22px;font-weight:900;color:var(--gold)" id="winner-title">VICTORY!</div>
+        <div style="font-size:13px;color:#cbd5e1;margin:8px 0 14px" id="winner-sub">Last Survivor Wins</div>
+        <button class="cta-btn" id="winner-btn-lobby">RETURN TO LOBBY</button>
+      </div>
+    </div>
+
+    <!-- Exit Game Confirmation Modal -->
+    <div id="exit-overlay" class="center-modal hidden">
+      <div class="modal-card" style="text-align:center">
+        <div style="font-size:20px;font-weight:900;color:var(--gold)">MISSION SAVED & ENDED</div>
+        <div style="font-size:13px;color:#cbd5e1;margin:8px 0 6px">Your credits, best wave, and tactical loadout have been saved safely offline.</div>
+        <div style="font-size:11px;font-weight:700;color:#fde68a;margin-bottom:14px">Made by JMC Labs • Made for Lucas the Pogi</div>
+        <button class="cta-btn" id="btn-resume-after-exit">REOPEN LOBBY</button>
+      </div>
+    </div>
+
+    <!-- JMC Labs Support (Donate + Suggest) Modal -->
+    <div id="support-overlay" class="center-modal hidden">
+      <div class="modal-card">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px">
+          <div>
+            <div style="font-size:17px;font-weight:900;color:var(--gold)">JMC LABS • FOR LUCAS THE POGI</div>
+            <div style="font-size:11px;color:#cbd5e1">Support development & send ideas directly to jccodilla@gmail.com</div>
+          </div>
+          <button class="sec-btn" id="btn-close-support">CLOSE</button>
+        </div>
+
+        <div style="background:#1e293b;border:1px solid var(--border-olive);border-radius:6px;padding:10px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:4px">KEEP THE GAME GOING — DONATE</div>
+          <div style="font-size:12px;color:#e2e8f0;margin-bottom:8px">
+            Donate <b>₱10</b>, <b>₱20</b>, <b>₱50</b> or any amount thru <b>GCash</b> or <b>PayMaya</b> to <b>Joseph Michael Codilla</b>.
+          </div>
+          <div class="row" style="margin-bottom:6px">
+            <button class="sec-btn donate-chan active" data-chan="GCash" style="border-color:var(--gold)">GCash</button>
+            <button class="sec-btn donate-chan" data-chan="PayMaya">PayMaya</button>
+            <button class="sec-btn donate-amt" data-amt="10">₱10</button>
+            <button class="sec-btn donate-amt" data-amt="20">₱20</button>
+            <button class="sec-btn donate-amt" data-amt="50">₱50</button>
+            <input id="inp-donate-custom" class="tac-input" type="number" min="1" placeholder="Any ₱" style="width:82px" value="20" />
+          </div>
+          <div class="row" style="justify-content:space-between;background:#0f172a;padding:7px 9px;border-radius:4px">
+            <span id="donate-summary" style="font-size:12px;color:#fde68a;font-weight:700">GCash • ₱20 → Joseph Michael Codilla</span>
+            <button class="cta-btn" id="btn-copy-donate" style="padding:5px 9px;font-size:11px">COPY DETAILS</button>
+          </div>
+          <div id="donate-feedback" style="font-size:11px;color:#84cc16;margin-top:4px"></div>
+        </div>
+
+        <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.16);border-radius:6px;padding:10px">
+          <div style="font-size:13px;font-weight:800;color:var(--tac-blue);margin-bottom:6px">SUGGEST TO IMPROVE THE GAME (→ jccodilla@gmail.com)</div>
+          <div class="row" style="margin-bottom:6px">
+            <input id="inp-suggest-from" class="tac-input" style="flex:1;min-width:120px" maxlength="40" placeholder="Your Name / Callsign" />
+            <select id="sel-suggest-cat" class="tac-select" style="flex:1;min-width:130px">
+              <option value="Gameplay & Weapons">Gameplay & Weapons</option>
+              <option value="Maps & Graphics">Maps & Graphics</option>
+              <option value="Characters & Audio">Characters & Audio</option>
+              <option value="Mobile Controls & Bugs">Mobile Controls & Bugs</option>
+              <option value="New Feature Idea">New Feature Idea</option>
+            </select>
+          </div>
+          <textarea id="inp-suggest-msg" class="tac-input" rows="3" maxlength="1500" placeholder="Write your suggestion to improve Lucas Extreme Battlefield... (automatically sent to jccodilla@gmail.com)" style="resize:vertical;margin-bottom:6px"></textarea>
+          <div class="row" style="justify-content:space-between">
+            <button class="cta-btn" id="btn-send-suggest" style="flex:1">SEND SUGGESTION TO jccodilla@gmail.com</button>
+            <a id="lnk-suggest-mailto" class="sec-btn" href="mailto:jccodilla@gmail.com?subject=Lucas%20Extreme%20Battlefield%20Suggestion" style="text-decoration:none;display:inline-flex;align-items:center">MAIL APP</a>
+          </div>
+          <div id="suggest-status" style="font-size:11px;color:#cbd5e1;margin-top:5px"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="./three.min.js"></script>
+    <script src="./GLTFLoader.js"></script>
+    <script src="./SkeletonUtils.js"></script>
+    <script src="./js/audio.js"></script>
+    <script src="./js/textures.js"></script>
+    <script src="./js/weapons.js"></script>
+    <script src="./js/femaleOperative.js"></script>
+    <script src="./js/net.js"></script>
+    <script src="./js/arena.js"></script>
+    <script src="./js/game.js"></script>
+  </body>
+</html>

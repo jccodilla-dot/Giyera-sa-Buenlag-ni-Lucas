@@ -390,11 +390,15 @@
       <div class="lobby-topbar">
         <div>
           <div class="brand-title">LUCAS EXTREME BATTLEFIELD</div>
-          <div style="font-size:12px;color:var(--text-muted)">
+          <div style="font-size:12px;font-weight:800;color:#fde68a;letter-spacing:0.03em">
+            MADE BY JMC LABS • MADE FOR LUCAS THE POGI
+          </div>
+          <div style="font-size:11px;color:var(--text-muted)">
             <span id="lobby-high-wave">BEST WAVE: 1</span> • <span id="lobby-credits">CREDITS: ₱300</span>
           </div>
         </div>
         <div class="row">
+          <button class="cta-btn" id="lobby-support" style="padding:7px 10px;font-size:12px">DONATE / SUGGEST</button>
           <button class="sec-btn" id="lobby-quality">QUALITY: HD</button>
           <button class="sec-btn" id="lobby-fullscreen">FULLSCREEN</button>
           <button class="danger-btn" id="lobby-exit">EXIT GAME</button>
@@ -483,6 +487,18 @@
             <div class="row" id="net-roster"></div>
           </div>
         </div>
+
+        <!-- JMC Labs Credits, GCash/PayMaya Support & Suggestions -->
+        <div class="panel" style="border-color:var(--border-olive)">
+          <div style="font-size:12px;font-weight:800;color:var(--gold)">MADE BY JMC LABS • FOR LUCAS THE POGI</div>
+          <div style="font-size:11px;color:#e2e8f0;line-height:1.35">
+            Donate <b>₱10</b>, <b>₱20</b>, <b>₱50</b> or any amount thru <b>GCash</b> or <b>PayMaya</b> to <b>Joseph Michael Codilla</b> to keep the game going.
+          </div>
+          <div class="row">
+            <button class="cta-btn" id="btn-open-donate" style="flex:1;padding:6px 10px;font-size:12px">DONATE (GCASH / PAYMAYA)</button>
+            <button class="sec-btn" id="btn-open-suggest" style="flex:1">SUGGEST (→ jccodilla@gmail.com)</button>
+          </div>
+        </div>
       </div>
 
       <div style="font-size:11px;color:#cbd5e1">
@@ -530,8 +546,62 @@
     <div id="exit-overlay" class="center-modal hidden">
       <div class="modal-card" style="text-align:center">
         <div style="font-size:20px;font-weight:900;color:var(--gold)">MISSION SAVED & ENDED</div>
-        <div style="font-size:13px;color:#cbd5e1;margin:8px 0 14px">Your credits, best wave, and tactical loadout have been saved safely offline.</div>
+        <div style="font-size:13px;color:#cbd5e1;margin:8px 0 6px">Your credits, best wave, and tactical loadout have been saved safely offline.</div>
+        <div style="font-size:11px;font-weight:700;color:#fde68a;margin-bottom:14px">Made by JMC Labs • Made for Lucas the Pogi</div>
         <button class="cta-btn" id="btn-resume-after-exit">REOPEN LOBBY</button>
+      </div>
+    </div>
+
+    <!-- JMC Labs Support (Donate + Suggest) Modal -->
+    <div id="support-overlay" class="center-modal hidden">
+      <div class="modal-card">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px">
+          <div>
+            <div style="font-size:17px;font-weight:900;color:var(--gold)">JMC LABS • FOR LUCAS THE POGI</div>
+            <div style="font-size:11px;color:#cbd5e1">Support development & send ideas directly to jccodilla@gmail.com</div>
+          </div>
+          <button class="sec-btn" id="btn-close-support">CLOSE</button>
+        </div>
+
+        <div style="background:#1e293b;border:1px solid var(--border-olive);border-radius:6px;padding:10px;margin-bottom:10px">
+          <div style="font-size:13px;font-weight:800;color:var(--gold);margin-bottom:4px">KEEP THE GAME GOING — DONATE</div>
+          <div style="font-size:12px;color:#e2e8f0;margin-bottom:8px">
+            Donate <b>₱10</b>, <b>₱20</b>, <b>₱50</b> or any amount thru <b>GCash</b> or <b>PayMaya</b> to <b>Joseph Michael Codilla</b>.
+          </div>
+          <div class="row" style="margin-bottom:6px">
+            <button class="sec-btn donate-chan active" data-chan="GCash" style="border-color:var(--gold)">GCash</button>
+            <button class="sec-btn donate-chan" data-chan="PayMaya">PayMaya</button>
+            <button class="sec-btn donate-amt" data-amt="10">₱10</button>
+            <button class="sec-btn donate-amt" data-amt="20">₱20</button>
+            <button class="sec-btn donate-amt" data-amt="50">₱50</button>
+            <input id="inp-donate-custom" class="tac-input" type="number" min="1" placeholder="Any ₱" style="width:82px" value="20" />
+          </div>
+          <div class="row" style="justify-content:space-between;background:#0f172a;padding:7px 9px;border-radius:4px">
+            <span id="donate-summary" style="font-size:12px;color:#fde68a;font-weight:700">GCash • ₱20 → Joseph Michael Codilla</span>
+            <button class="cta-btn" id="btn-copy-donate" style="padding:5px 9px;font-size:11px">COPY DETAILS</button>
+          </div>
+          <div id="donate-feedback" style="font-size:11px;color:#84cc16;margin-top:4px"></div>
+        </div>
+
+        <div style="background:#1e293b;border:1px solid rgba(255,255,255,0.16);border-radius:6px;padding:10px">
+          <div style="font-size:13px;font-weight:800;color:var(--tac-blue);margin-bottom:6px">SUGGEST TO IMPROVE THE GAME (→ jccodilla@gmail.com)</div>
+          <div class="row" style="margin-bottom:6px">
+            <input id="inp-suggest-from" class="tac-input" style="flex:1;min-width:120px" maxlength="40" placeholder="Your Name / Callsign" />
+            <select id="sel-suggest-cat" class="tac-select" style="flex:1;min-width:130px">
+              <option value="Gameplay & Weapons">Gameplay & Weapons</option>
+              <option value="Maps & Graphics">Maps & Graphics</option>
+              <option value="Characters & Audio">Characters & Audio</option>
+              <option value="Mobile Controls & Bugs">Mobile Controls & Bugs</option>
+              <option value="New Feature Idea">New Feature Idea</option>
+            </select>
+          </div>
+          <textarea id="inp-suggest-msg" class="tac-input" rows="3" maxlength="1500" placeholder="Write your suggestion to improve Lucas Extreme Battlefield... (automatically sent to jccodilla@gmail.com)" style="resize:vertical;margin-bottom:6px"></textarea>
+          <div class="row" style="justify-content:space-between">
+            <button class="cta-btn" id="btn-send-suggest" style="flex:1">SEND SUGGESTION TO jccodilla@gmail.com</button>
+            <a id="lnk-suggest-mailto" class="sec-btn" href="mailto:jccodilla@gmail.com?subject=Lucas%20Extreme%20Battlefield%20Suggestion" style="text-decoration:none;display:inline-flex;align-items:center">MAIL APP</a>
+          </div>
+          <div id="suggest-status" style="font-size:11px;color:#cbd5e1;margin-top:5px"></div>
+        </div>
       </div>
     </div>
 
