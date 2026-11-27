@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Lucas Extreme Battlefield</title>
+    <meta name="description" content="3D mobile tactical FPS with 5-player LAN war mode, 5 colorful terrains, rigged Soldier AI with distinct masks, combat drone, grenades, EMP, and offline waves." />
+    <meta property="og:title" content="Lucas Extreme Battlefield" />
+    <meta property="og:description" content="3D mobile tactical FPS with 5-player LAN war mode, 5 colorful terrains, rigged Soldier AI with distinct masks, combat drone, grenades, EMP, and offline waves." />
+    <meta property="og:type" content="website" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#111519" />
+    <link rel="icon" type="image/jpeg" href="./assets/face.jpg" />
+    <style>
+      :root {
+        --bg-slate: #111519;
+        --panel-dark: rgba(14, 19, 25, 0.86);
+        --border-olive: rgba(229, 184, 66, 0.45);
+        --border-steel: rgba(255, 255, 255, 0.18);
+        --gold: #e5b842;
+        --olive-lime: #84cc16;
+        --tac-blue: #38bdf8;
+        --hostile-red: #ef4444;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --font-display: 'Rajdhani', 'Bahnschrift', 'Segoe UI', system-ui, sans-serif;
+        --font-mono: 'JetBrains Mono', ui-monospace, Menlo, Consolas, monospace;
+      }
+
+      * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; -webkit-user-select: none; }
+      html, body {
+        margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden;
+        background: var(--bg-slate); color: var(--text-main);
+        font-family: var(--font-display); touch-action: none;
+      }
+      input, select { user-select: text; -webkit-user-select: text; font-family: inherit; }
+
+      #game-canvas-container { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 1; }
+      #game-canvas-container canvas { display: block; width: 100%; height: 100%; }
+
+      #damage-vignette, #ads-vignette {
+        position: fixed; inset: 0; z-index: 4; pointer-events: none; opacity: 0; transition: opacity 110ms ease;
+      }
+      #damage-vignette { background: radial-gradient(circle at center, transparent 44%, rgba(220, 38, 38, 0.7) 100%); }
+      #ads-vignette { background: radial-gradient(circle at center, transparent 52%, rgba(8, 12, 18, 0.58) 100%); }
+
+      #floating-layer { position: fixed; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+      .dmg-float {
+        position: absolute; font-family: var(--font-mono); font-weight: 800; font-size: 15px;
+        transform: translate(-50%, -50%); text-shadow: 0 2px 6px #000; animation: dmgUp 0.52s ease-out forwards;
+      }
+      @keyframes dmgUp { from { opacity: 1; margin-top: 0; } to { opacity: 0; margin-top: -28px; } }
+
+      #crosshair {
+        position: fixed; left: 50%; top: 50%; width: 32px; height: 32px;
+        transform: translate(-50%, -50%); z-index: 6; pointer-events: none; display: none;
+      }
+      .ch-pip { position: absolute; background: rgba(255,255,255,0.92); box-shadow: 0 0 4px #000; }
+      .ch-top { width: 2px; height: 7px; left: 15px; top: 1px; }
+      .ch-bot { width: 2px; height: 7px; left: 15px; bottom: 1px; }
+      .ch-left { width: 7px; height: 2px; left: 1px; top: 15px; }
+      .ch-right { width: 7px; height: 2px; right: 1px; top: 15px; }
+      .ch-dot { position: absolute; width: 4px; height: 4px; left: 14px; top: 14px; border-radius: 50%; background: #ef4444; }
+      #hitmarker { position: absolute; inset: 0; opacity: 0; transform: scale(0.8); transition: opacity 75ms ease, transform 75ms ease; }
+      #hitmarker.active { opacity: 1; transform: scale(1.1); }
+      #hitmarker::before, #hitmarker::after {
+        content: ''; position: absolute; left: 50%; top: 50%; width: 18px; height: 2px; background: #fff;
+      }
+      #hitmarker.kill::before, #hitmarker.kill::after { background: #ef4444; }
+      #hitmarker.headshot::before, #hitmarker.headshot::after { background: var(--gold); width: 22px; }
+      #hitmarker::before { transform: translate(-50%, -50%) rotate(45deg); }
+      #hitmarker::after { transform: translate(-50%, -50%) rotate(-45deg); }
+
+      /* In-Game HUD */
+      #hud { position: fixed; inset: 0; z-index: 10; pointer-events: none; display: none; }
+      .hud-top {
+        position: absolute; top: max(8px, env(safe-area-inset-top));
+        left: max(8px, env(safe-area-inset-left)); right: max(8px, env(safe-area-inset-right));
+        display: flex; align-items: flex-start; justify-content: space-between; gap: 6px;
+      }
+      .hud-left-col { display: flex; flex-direction: column; gap: 5px; max-width: 195px; }
+      .player-vitals-card {
+        background: var(--panel-dark); border: 1px solid var(--border-steel); border-radius: 5px; padding: 6px 8px;
+      }
+      .vitals-head { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+      .avatar-frame { width: 30px; height: 30px; border-radius: 4px; border: 1.5px solid var(--gold); overflow: hidden; flex-shrink: 0; }
+      .avatar-frame img { width: 100%; height: 100%; object-fit: cover; display: block; }
+      .vitals-name { font-size: 12px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 120px; }
+      .vitals-sub { display: flex; align-items: center; gap: 6px; font-family: var(--font-mono); font-size: 10px; color: var(--olive-lime); }
+      .patch-tag { background: rgba(255,255,255,0.12); padding: 1px 4px; border-radius: 3px; color: #fff; font-weight: 700; }
+      .bar-track { width: 100%; height: 5px; background: rgba(255,255,255,0.14); border-radius: 2px; overflow: hidden; margin-bottom: 3px; }
+      .bar-fill { height: 100%; transition: width 110ms ease; }
+      .bar-hp { background: #84cc16; }
+      .bar-shield { background: #38bdf8; }
+      .killfeed { display: flex; flex-direction: column; gap: 2px; font-size: 10px; font-family: var(--font-mono); }
+      .kf-line { background: rgba(12,16,20,0.72); padding: 2px 6px; border-radius: 3px; width: fit-content; }
+
+      .compass-wrap {
+        background: var(--panel-dark); border: 1px solid var(--border-steel); border-radius: 5px;
+        padding: 4px 10px; text-align: center; min-width: 126px;
+      }
+      .compass-strip { font-family: var(--font-mono); font-size: 11px; font-weight: 700; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 2px; }
+      .compass-bearing { color: var(--gold); }
+      .wave-row { display: flex; align-items: center; justify-content: center; gap: 6px; font-size: 11px; font-weight: 700; margin-top: 2px; }
+      .wave-hostiles { color: #f87171; font-family: var(--font-mono); }
+
+      /* Upper-Right Minimap + Controls */
+      .hud-right-col { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+      .hud-right-top { display: flex; align-items: flex-start; gap: 6px; }
+      .minimap-box {
+        width: 96px; height: 96px; background: rgba(10,15,22,0.88);
+        border: 1.5px solid var(--gold); border-radius: 6px; overflow: hidden;
+        box-shadow: 0 4px 14px rgba(0,0,0,0.55); position: relative;
+      }
+      .minimap-label {
+        position: absolute; top: 2px; left: 4px; font-size: 8px; font-family: var(--font-mono);
+        color: var(--gold); font-weight: 700; pointer-events: none;
+      }
+      #minimap-canvas { width: 100%; height: 100%; display: block; }
+      .economy-box {
+        background: var(--panel-dark); border: 1px solid var(--border-olive); border-radius: 5px;
+        padding: 4px 7px; text-align: right;
+      }
+      .credits-val { font-family: var(--font-mono); font-size: 13px; font-weight: 800; color: var(--gold); }
+      .combo-val { font-family: var(--font-mono); font-size: 10px; color: #cbd5e1; }
+      .hud-btn-row { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+      .hud-btn {
+        pointer-events: auto; min-height: 32px; padding: 0 8px; border-radius: 4px;
+        background: var(--panel-dark); border: 1px solid rgba(255,255,255,0.24);
+        color: #f8fafc; font-family: var(--font-display); font-size: 11px; font-weight: 700; cursor: pointer;
+      }
+      .hud-btn.gold { border-color: var(--border-olive); color: var(--gold); }
+      .hud-btn.exit { border-color: rgba(239,68,68,0.6); color: #fca5a5; }
+
+      .ammo-readout {
+        position: absolute; bottom: max(66px, calc(env(safe-area-inset-bottom) + 62px)); left: 50%;
+        transform: translateX(-50%); background: var(--panel-dark); border: 1px solid var(--border-steel);
+        border-radius: 4px; padding: 2px 12px; display: flex; align-items: baseline; gap: 6px; font-family: var(--font-mono);
+      }
+      .ammo-mag { font-size: 19px; font-weight: 800; }
+      .ammo-res { font-size: 11px; color: var(--text-muted); }
+
+      .weapon-dock {
+        position: absolute; bottom: max(10px, env(safe-area-inset-bottom)); left: 50%; transform: translateX(-50%);
+        pointer-events: auto; display: flex; gap: 4px; background: var(--panel-dark);
+        border: 1px solid var(--border-steel); border-radius: 5px; padding: 4px;
+      }
+      .weapon-slot {
+        min-width: 52px; padding: 4px 6px; border-radius: 3px; border: 1px solid transparent;
+        background: rgba(255,255,255,0.05); color: var(--text-muted); cursor: pointer; text-align: center;
+      }
+      .weapon-slot.active { background: rgba(229,184,66,0.2); border-color: var(--gold); color: #fff; }
+      .weapon-slot.locked { opacity: 0.45; }
+      .ws-name { font-size: 10px; font-weight: 700; }
+      .ws-ammo { font-family: var(--font-mono); font-size: 9px; }
+
+      /* Touch Controls */
+      #joystick-zone { position: absolute; left: 0; bottom: 0; width: 42%; height: 46%; pointer-events: auto; z-index: 2; }
+      #joystick-base {
+        position: absolute; left: max(20px, env(safe-area-inset-left)); bottom: max(22px, env(safe-area-inset-bottom));
+        width: 108px; height: 108px; border-radius: 50%; background: rgba(16,20,24,0.48); border: 2px solid rgba(255,255,255,0.34);
+      }
+      #joystick-knob {
+        position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px;
+        border-radius: 50%; background: rgba(241,245,249,0.88); border: 2px solid #fff;
+      }
+      #look-zone { position: absolute; top: 104px; right: 0; bottom: 0; left: 42%; pointer-events: auto; z-index: 1; }
+
+      .action-cluster {
+        position: absolute; right: max(10px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom));
+        z-index: 3; pointer-events: none; display: grid;
+        grid-template-columns: 50px 50px 68px; grid-template-rows: 48px 48px 48px 68px; gap: 6px;
+        align-items: center; justify-items: center;
+      }
+      .touch-btn {
+        pointer-events: auto; border-radius: 50%; border: 1.5px solid rgba(255,255,255,0.36);
+        background: rgba(14,19,25,0.82); color: #fff; font-family: var(--font-display); font-weight: 800;
+        font-size: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center;
+        cursor: pointer; width: 48px; height: 48px; line-height: 1.05;
+      }
+      .touch-btn.active { background: rgba(229,184,66,0.35); border-color: var(--gold); color: var(--gold); }
+      #btn-lookback { grid-column: 1; grid-row: 2; border-color: #38bdf8; color: #bae6fd; font-size: 9px; text-align: center; }
+      #btn-grenade { grid-column: 1; grid-row: 3; border-color: #f97316; color: #fed7aa; }
+      #btn-emp { grid-column: 2; grid-row: 2; border-color: #38bdf8; color: #7dd3fc; }
+      #btn-jump { grid-column: 2; grid-row: 3; border-color: #a3e635; color: #d9f99d; }
+      #btn-ads { grid-column: 3; grid-row: 2; width: 52px; height: 52px; border-color: var(--gold); color: var(--gold); }
+      #btn-swap { grid-column: 1; grid-row: 4; }
+      #btn-reload { grid-column: 2; grid-row: 4; }
+      #btn-fire {
+        grid-column: 3; grid-row: 3 / span 2; width: 68px; height: 68px;
+        border: 2px solid var(--gold); background: rgba(185,28,28,0.8); font-size: 13px;
+      }
+      #btn-fire.firing { background: rgba(239,68,68,0.96); }
+
+      /* Wave Banner */
+      #wave-banner {
+        position: fixed; top: 22%; left: 50%; transform: translate(-50%, -50%) scale(0.95);
+        z-index: 9; pointer-events: none; background: rgba(14,18,22,0.92); border: 1.5px solid var(--gold);
+        border-radius: 6px; padding: 8px 20px; text-align: center; opacity: 0; transition: all 180ms ease;
+      }
+      #wave-banner.show { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+      #wave-banner-title { font-size: 20px; font-weight: 800; color: var(--gold); }
+      #wave-banner-sub { font-size: 12px; color: var(--text-muted); }
+
+      /* Lobby & Modals */
+      .overlay {
+        position: fixed; inset: 0; z-index: 30; display: flex; flex-direction: column;
+        justify-content: space-between; padding: 10px 12px; overflow-y: auto;
+        background: linear-gradient(90deg, rgba(11,15,22,0.88) 0%, rgba(11,15,22,0.45) 58%, rgba(11,15,22,0.2) 100%);
+      }
+      .overlay.hidden { display: none; }
+      .lobby-topbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+      .brand-title { font-size: 20px; font-weight: 800; color: var(--gold); letter-spacing: 0.05em; }
+      .lobby-grid { display: grid; grid-template-columns: minmax(270px, 390px); gap: 8px; margin: 8px 0; }
+      .panel {
+        background: var(--panel-dark); border: 1px solid var(--border-steel); border-radius: 6px; padding: 10px;
+        display: flex; flex-direction: column; gap: 7px;
+      }
+      .row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+      .field-label { font-size: 11px; color: var(--text-muted); font-weight: 700; text-transform: uppercase; }
+      .tac-input, .tac-select {
+        width: 100%; background: #0f172a; border: 1px solid rgba(255,255,255,0.22); color: #fff;
+        padding: 6px 8px; border-radius: 4px; font-size: 13px;
+      }
+      .avatar-pair { display: flex; align-items: center; gap: 8px; }
+      .avatar-pair img { width: 48px; height: 48px; border-radius: 6px; border: 1.5px solid var(--gold); object-fit: cover; }
+      .swatch-btn { width: 24px; height: 24px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+      .swatch-btn.active { border-color: #fff; transform: scale(1.15); }
+      .cta-btn {
+        background: var(--gold); color: #0f172a; border: none; border-radius: 5px; padding: 9px 12px;
+        font-family: var(--font-display); font-weight: 800; font-size: 14px; cursor: pointer;
+      }
+      .sec-btn {
+        background: rgba(30,41,59,0.9); color: #f8fafc; border: 1px solid rgba(255,255,255,0.25);
+        border-radius: 5px; padding: 7px 10px; font-family: var(--font-display); font-weight: 700; font-size: 12px; cursor: pointer;
+      }
+      .danger-btn {
+        background: rgba(185,28,28,0.85); color: #fff; border: 1px solid #ef4444;
+        border-radius: 5px; padding: 8px 12px; font-weight: 800; cursor: pointer;
+      }
+      .roster-pill {
+        display: flex; align-items: center; gap: 6px; background: rgba(15,23,42,0.85);
+        border: 1px solid rgba(255,255,255,0.16); border-radius: 5px; padding: 4px 6px;
+      }
+      .roster-pill img { width: 34px; height: 34px; border-radius: 4px; object-fit: cover; border: 1px solid var(--gold); }
+      .rp-name { font-size: 12px; font-weight: 700; }
+      .rp-meta { font-size: 10px; color: var(--text-muted); }
+      .net-room-row {
+        display: flex; justify-content: space-between; align-items: center; font-size: 11px;
+        background: rgba(15,23,42,0.8); padding: 4px 7px; border-radius: 4px; margin-top: 3px;
+      }
+      .net-join-quick { background: var(--gold); color: #111; border: none; border-radius: 3px; padding: 3px 8px; font-weight: 800; cursor: pointer; }
+      .net-empty { font-size: 11px; color: var(--text-muted); }
+
+      /* Center Modals (Shop, Death, Winner, Exit) */
+      .center-modal {
+        position: fixed; inset: 0; z-index: 40; background: rgba(6,10,16,0.82);
+        display: flex; align-items: center; justify-content: center; padding: 14px;
+      }
+      .center-modal.hidden { display: none; }
+      .modal-card {
+        width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto;
+        background: #111827; border: 2px solid var(--gold); border-radius: 8px; padding: 16px;
+      }
+      .shop-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; margin-top: 10px; }
+      .shop-card { background: #1e293b; border: 1px solid rgba(255,255,255,0.14); border-radius: 5px; padding: 8px; display: flex; flex-direction: column; justify-content: space-between; gap: 6px; }
+      .shop-title { font-size: 13px; font-weight: 800; color: var(--gold); }
+      .shop-desc { font-size: 11px; color: #cbd5e1; }
+      .shop-buy { background: var(--gold); color: #111; border: none; border-radius: 4px; padding: 6px; font-weight: 800; cursor: pointer; }
+
+      .death-headline { font-size: 22px; font-weight: 900; color: #ef4444; text-align: center; line-height: 1.25; margin-bottom: 8px; }
+      #spectate-bar {
+        position: fixed; top: 14px; left: 50%; transform: translateX(-50%); z-index: 25;
+        background: var(--panel-dark); border: 1.5px solid var(--gold); border-radius: 6px;
+        padding: 6px 12px; display: flex; align-items: center; gap: 8px;
+      }
+      #spectate-bar.hidden { display: none; }
+
+      @media (max-width: 600px) {
+        .compass-wrap { display: none; }
+        .minimap-box { width: 82px; height: 82px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="game-canvas-container"></div>
+    <div id="damage-vignette"></div>
+    <div id="ads-vignette"></div>
+    <div id="floating-layer"></div>
+
+    <div id="crosshair">
+      <div class="ch-pip ch-top"></div>
+      <div class="ch-pip ch-bot"></div>
+      <div class="ch-pip ch-left"></div>
+      <div class="ch-pip ch-right"></div>
+      <div class="ch-dot"></div>
+      <div id="hitmarker"></div>
+    </div>
+
+    <div id="wave-banner">
+      <div id="wave-banner-title">WAVE 1</div>
+      <div id="wave-banner-sub">HOSTILES INBOUND</div>
+    </div>
+
+    <!-- In-Game HUD -->
+    <div id="hud">
+      <div class="hud-top">
+        <div class="hud-left-col">
+          <div class="player-vitals-card">
+            <div class="vitals-head">
+              <div class="avatar-frame"><img id="hud-avatar" src="./assets/face.jpg" alt="Lucas" /></div>
+              <div>
+                <div class="vitals-name" id="hud-name">[PH] Lucas</div>
+                <div class="vitals-sub">
+                  <span id="hud-hp">250 HP</span>
+                  <span class="patch-tag" id="hud-patch">PH</span>
+                  <span id="drone-status">DRONE: OFF</span>
+                </div>
+              </div>
+            </div>
+            <div class="bar-track"><div class="bar-fill bar-hp" id="hud-hp-bar" style="width:100%"></div></div>
+            <div class="bar-track"><div class="bar-fill bar-shield" id="hud-armor-bar" style="width:80%"></div></div>
+          </div>
+          <div class="killfeed" id="killfeed"></div>
+        </div>
+
+        <div class="compass-wrap">
+          <div class="compass-strip">NW • N • <span class="compass-bearing" id="compass-bearing">0°</span> • E • SE</div>
+          <div class="wave-row">
+            <span id="hud-wave">WAVE 1</span>
+            <span class="wave-hostiles" id="hud-hostiles">0 HOSTILES</span>
+          </div>
+        </div>
+
+        <!-- Upper-Right Minimap & Action Controls -->
+        <div class="hud-right-col">
+          <div class="hud-right-top">
+            <div class="economy-box">
+              <div class="credits-val" id="hud-credits">₱300</div>
+              <div class="combo-val" id="hud-combo">x1 COMBO</div>
+            </div>
+            <div class="minimap-box">
+              <div class="minimap-label">RADAR</div>
+              <canvas id="minimap-canvas" width="140" height="140"></canvas>
+            </div>
+          </div>
+          <div class="hud-btn-row">
+            <button class="hud-btn gold" id="btn-shop">ARMORY</button>
+            <button class="hud-btn" id="btn-cam">1ST</button>
+            <button class="hud-btn" id="btn-quality">HD</button>
+            <button class="hud-btn" id="btn-fullscreen">FS</button>
+            <button class="hud-btn exit" id="btn-exit">EXIT</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="ammo-readout">
+        <span class="ammo-mag" id="hud-ammo-mag">30</span>
+        <span class="ammo-res" id="hud-ammo-res">/ 120</span>
+      </div>
+      <div class="weapon-dock" id="weapon-dock"></div>
+
+      <div id="joystick-zone">
+        <div id="joystick-base"><div id="joystick-knob"></div></div>
+      </div>
+      <div id="look-zone"></div>
+
+      <div class="action-cluster">
+        <button class="touch-btn" id="btn-lookback">LOOK<br/>BACK</button>
+        <button class="touch-btn" id="btn-emp">EMP<span id="emp-count">1</span></button>
+        <button class="touch-btn" id="btn-ads">ADS</button>
+        <button class="touch-btn" id="btn-grenade">FRAG<span id="grenade-count">2</span></button>
+        <button class="touch-btn" id="btn-jump">JUMP</button>
+        <button class="touch-btn" id="btn-swap">SWAP</button>
+        <button class="touch-btn" id="btn-reload">RLD</button>
+        <button class="touch-btn" id="btn-fire">FIRE</button>
+      </div>
+    </div>
+
+    <!-- Spectate Bar -->
+    <div id="spectate-bar" class="hidden">
+      <span id="spectate-label" style="font-weight:800;color:var(--gold)">WATCHING BATTLE</span>
+      <button class="sec-btn" id="spec-btn-next">NEXT CAM</button>
+      <button class="sec-btn" id="spec-btn-lobby">LOBBY</button>
+      <button class="danger-btn" id="spec-btn-exit">EXIT</button>
+    </div>
+
+    <!-- Lobby / Start Screen -->
+    <div id="start-overlay" class="overlay">
+      <div class="lobby-topbar">
+        <div>
+          <div class="brand-title">LUCAS EXTREME BATTLEFIELD</div>
+          <div style="font-size:12px;color:var(--text-muted)">
+            <span id="lobby-high-wave">BEST WAVE: 1</span> • <span id="lobby-credits">CREDITS: ₱300</span>
+          </div>
+        </div>
+        <div class="row">
+          <button class="sec-btn" id="lobby-quality">QUALITY: HD</button>
+          <button class="sec-btn" id="lobby-fullscreen">FULLSCREEN</button>
+          <button class="danger-btn" id="lobby-exit">EXIT GAME</button>
+        </div>
+      </div>
+
+      <div class="lobby-grid">
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <div class="avatar-pair">
+              <img id="lobby-avatar" src="./assets/face.jpg" alt="Face" />
+              <img id="lobby-caricature" src="./assets/face.jpg" alt="Caricature" title="Network Caricature" />
+            </div>
+            <label class="sec-btn" style="cursor:pointer">
+              UPLOAD FACE
+              <input id="inp-face-file" type="file" accept="image/jpeg,image/png" style="display:none" />
+            </label>
+          </div>
+
+          <div class="row">
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Soldier Name</div>
+              <input id="inp-player-name" class="tac-input" maxlength="16" value="Lucas" />
+            </div>
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Country Patch</div>
+              <select id="sel-country" class="tac-select"></select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Operator Character</div>
+              <select id="sel-gender" class="tac-select">
+                <option value="male">Male Soldier (Lucas)</option>
+                <option value="female">Lady Operative</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Main Uniform (Unique)</div>
+              <select id="sel-uniform" class="tac-select"></select>
+            </div>
+            <div style="flex:1;min-width:120px">
+              <div class="field-label">Battle Terrain (5)</div>
+              <select id="sel-terrain" class="tac-select"></select>
+            </div>
+          </div>
+
+          <div>
+            <div class="field-label" style="margin-bottom:4px">Tactical Theme Color</div>
+            <div class="row" id="theme-swatches"></div>
+          </div>
+
+          <button class="cta-btn" id="btn-play-solo">DEPLOY SOLO WAVES (OFFLINE READY)</button>
+        </div>
+
+        <!-- 5-Player Single-Host Network War Panel -->
+        <div class="panel">
+          <div class="row" style="justify-content:space-between">
+            <div class="field-label" style="color:var(--gold)">NETWORK WAR (MAX 5 • 1 HOST ONLY)</div>
+            <span id="net-status" style="font-size:10px;color:var(--tac-blue)">CONNECTING...</span>
+          </div>
+          <label class="row" style="font-size:11px;color:#cbd5e1;cursor:pointer">
+            <input type="checkbox" id="chk-net-bots" checked />
+            <span>Mix w/ Country Army Bots (Uncheck = Network Players Only)</span>
+          </label>
+          <div class="row">
+            <input id="net-code-input" class="tac-input" style="flex:1;text-transform:uppercase" maxlength="6" placeholder="ROOM CODE (e.g. WAR1)" />
+            <button class="cta-btn" id="btn-host-room">HOST WAR</button>
+            <button class="sec-btn" id="btn-join-room">JOIN</button>
+            <button class="sec-btn" id="btn-refresh-rooms">LIST</button>
+          </div>
+          <div id="net-room-list"></div>
+
+          <div id="net-room-box" class="hidden" style="border-top:1px solid rgba(255,255,255,0.14);padding-top:6px">
+            <div class="row" style="justify-content:space-between;margin-bottom:4px">
+              <b id="net-room-code" style="color:var(--gold)">ROOM</b>
+              <div class="row">
+                <button class="cta-btn" id="btn-start-net-match" style="padding:5px 10px;font-size:12px">LAUNCH WAR MATCH</button>
+                <button class="sec-btn" id="btn-leave-room">LEAVE</button>
+              </div>
+            </div>
+            <div class="row" id="net-roster"></div>
+          </div>
+        </div>
+      </div>
+
+      <div style="font-size:11px;color:#cbd5e1">
+        Desktop: WASD Move • Click Look • R Reload • B Look Back • G Grenade • E EMP | Mobile: Left Stick • Right Drag • Thumb Buttons
+      </div>
+    </div>
+
+    <!-- Armory / Shop Modal -->
+    <div id="shop-overlay" class="center-modal hidden">
+      <div class="modal-card">
+        <div class="row" style="justify-content:space-between">
+          <div>
+            <div style="font-size:18px;font-weight:800;color:var(--gold)">TACTICAL ARMORY</div>
+            <div style="font-size:12px;color:#cbd5e1">Credits: <b id="shop-credits" style="color:var(--gold)">₱300</b></div>
+          </div>
+          <button class="sec-btn" id="btn-close-shop">RESUME BATTLE</button>
+        </div>
+        <div class="shop-grid" id="shop-grid"></div>
+      </div>
+    </div>
+
+    <!-- Exact Required Death Popup -->
+    <div id="death-overlay" class="center-modal hidden">
+      <div class="modal-card" style="text-align:center;border-color:#ef4444">
+        <div class="death-headline">YOU WERE KILLED IN BATTLE! KAIN KA PA MARAMING BIGAS BOY!</div>
+        <div id="death-killer" style="font-size:13px;color:#cbd5e1;margin-bottom:14px">Eliminated in combat</div>
+        <div class="row" style="justify-content:center;gap:10px">
+          <button class="cta-btn" id="death-btn-spectate">CONTINUE WATCHING</button>
+          <button class="sec-btn" id="death-btn-lobby">RETURN TO LOBBY</button>
+          <button class="danger-btn" id="death-btn-exit">EXIT GAME</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Match Winner Modal -->
+    <div id="winner-overlay" class="center-modal hidden">
+      <div class="modal-card" style="text-align:center">
+        <div style="font-size:22px;font-weight:900;color:var(--gold)" id="winner-title">VICTORY!</div>
+        <div style="font-size:13px;color:#cbd5e1;margin:8px 0 14px" id="winner-sub">Last Survivor Wins</div>
+        <button class="cta-btn" id="winner-btn-lobby">RETURN TO LOBBY</button>
+      </div>
+    </div>
+
+    <!-- Exit Game Confirmation Modal -->
+    <div id="exit-overlay" class="center-modal hidden">
+      <div class="modal-card" style="text-align:center">
+        <div style="font-size:20px;font-weight:900;color:var(--gold)">MISSION SAVED & ENDED</div>
+        <div style="font-size:13px;color:#cbd5e1;margin:8px 0 14px">Your credits, best wave, and tactical loadout have been saved safely offline.</div>
+        <button class="cta-btn" id="btn-resume-after-exit">REOPEN LOBBY</button>
+      </div>
+    </div>
+
+    <script src="./three.min.js"></script>
+    <script src="./GLTFLoader.js"></script>
+    <script src="./SkeletonUtils.js"></script>
+    <script src="./js/audio.js"></script>
+    <script src="./js/textures.js"></script>
+    <script src="./js/weapons.js"></script>
+    <script src="./js/femaleOperative.js"></script>
+    <script src="./js/net.js"></script>
+    <script src="./js/arena.js"></script>
+    <script src="./js/game.js"></script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+{
+  "name": "Lucas Extreme Battlefield",
+  "description": "High-contrast neon 3D tactical wave shooter engineered for Android touchscreens with custom face mapping, unlockable special weapons, and offline readiness.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
