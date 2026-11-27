@@ -231,12 +231,12 @@ async function startServer() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
-          _subject: `[Lucas Extreme Battlefield] Suggestion: ${category}`,
+          _subject: `[GIYERA SA BUENLAG NI LUCAS] Suggestion: ${category}`,
           _template: 'table',
           Player: name,
           Category: category,
           Suggestion: message,
-          App: 'Lucas Extreme Battlefield by JMC Labs (for Lucas the Pogi)',
+          App: 'GIYERA SA BUENLAG NI LUCAS by JMC Labs (for Lucas the Pogi)',
         }),
         signal: ac.signal,
       });
@@ -619,7 +619,7 @@ async function startServer() {
   });
 
   server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Lucas Extreme Battlefield server listening on http://0.0.0.0:${PORT}`);
+    console.log(`GIYERA SA BUENLAG NI LUCAS server listening on http://0.0.0.0:${PORT}`);
   });
 }
 

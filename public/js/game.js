@@ -1425,7 +1425,7 @@
         sumEl.textContent = donateChan + ' • ₱' + amt + ' → Joseph Michael Codilla';
       }
       function updateMailtoHref() {
-        var sub = encodeURIComponent('[Lucas Extreme Battlefield] ' + suggestCat.value);
+        var sub = encodeURIComponent('[GIYERA SA BUENLAG NI LUCAS] ' + suggestCat.value);
         var body = encodeURIComponent('From: ' + (suggestFrom.value.trim() || state.playerName) + '\n\n' + suggestMsg.value.trim());
         mailtoLink.href = 'mailto:jccodilla@gmail.com?subject=' + sub + '&body=' + body;
       }
@@ -1449,7 +1449,7 @@
 
       document.getElementById('btn-copy-donate').addEventListener('click', function () {
         refreshDonateSummary();
-        var txt = 'Donation for Lucas Extreme Battlefield (Made by JMC Labs for Lucas the Pogi): ₱' + donateAmt + ' via ' + donateChan + ' to Joseph Michael Codilla';
+        var txt = 'Donation for GIYERA SA BUENLAG NI LUCAS (Made by JMC Labs for Lucas the Pogi): ₱' + donateAmt + ' via ' + donateChan + ' to Joseph Michael Codilla';
         if (navigator.clipboard && navigator.clipboard.writeText) {
           navigator.clipboard.writeText(txt).catch(function () {});
         }
